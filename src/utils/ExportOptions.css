@@ -1,0 +1,65 @@
+.export-options {
+    margin-bottom: 20px;
+  }
+  
+  .export-section {
+    margin-bottom: 15px;
+    padding: 10px;
+    border-radius: 4px;
+    background-color: #f8f8f8;
+  }
+  
+  .export-section h3 {
+    margin-top: 0;
+    margin-bottom: 10px;
+    font-size: 16px;
+    color: #444;
+  }
+  
+  .button-group {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 10px;
+    flex-wrap: wrap;
+  }
+  
+  .button-group button {
+    min-width: 140px;
+    padding: 8px 12px;
+  }
+  
+  .primary-button {
+    background-color: #4caf50;
+    color: white;
+  }
+  
+  .primary-button:hover {
+    background-color: #45a049;
+  }
+  
+  .info-text {
+    font-style: italic;
+    color: #666;
+    margin-bottom: 10px;
+  }
+  
+  .help-section {
+    margin-top: 20px;
+    border-top: 1px solid #ddd;
+    padding-top: 10px;
+  }
+  
+  .help-section h3 {
+    font-size: 16px;
+    margin-bottom: 8px;
+  }
+  
+  .help-section ul {
+    margin: 0;
+    padding-left: 20px;
+  }
+  
+  .help-section li {
+    margin-bottom: 5px;
+    font-size: 14px;
+  }

@@ -1,0 +1,14 @@
+.export-options {
+  margin-bottom: 20px;
+}
+
+.button-group {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.info-text {
+  font-style: italic;
+  color: #666;
+}
