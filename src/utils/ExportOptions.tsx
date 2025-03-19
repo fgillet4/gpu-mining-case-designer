@@ -61,8 +61,8 @@ const ExportOptions: React.FC<ExportOptionsProps> = ({
         <ul>
           <li><strong>SVG</strong> - Standard vector format for design software</li>
           <li><strong>DXF</strong> - Compatible with CAD software and laser cutters</li>
-          <li><strong>DWG</strong> - AutoCAD native format</li>
-          <li><strong>Laser-Ready</strong> - Includes finger joints and assembly tabs</li>
+          <li><strong>DWG</strong> - AutoCAD native format (not implemented yet)</li>
+          <li><strong>Laser-Ready</strong> - Includes finger joints and assembly tabs for easy assembly</li>
         </ul>
       </div>
     </div>

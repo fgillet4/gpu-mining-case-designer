@@ -5,7 +5,6 @@ import CaseDesigner from './components/CaseDesigner';
 import GpuConfigurator from './components/GpuConfigurator';
 import ExportOptions from './components/ExportOptions';
 import CaseModel from './components/CaseModel';
-import { LaserCutExporter } from './utils/LaserCutExporter';
 import { SVGExporter } from './utils/SVGExporter';
 import { DXFExporter } from './utils/DXFExporter';
 import './App.css';
@@ -28,11 +27,11 @@ const App: React.FC = () => {
   const [kerf, setKerf] = useState<number>(0.01);
   const [showLabels, setShowLabels] = useState<boolean>(true);
   
-  // GPU models
+  // GPU models with correct dimensions - RTX 3090 is 336mm x 140mm x 61mm (13.2" x 5.5" x 2.4")
   const [gpuModels, setGpuModels] = useState<GPUSlot[]>([
-    { name: 'RTX 3080', length: 11.2, height: 4.4, width: 2, tdp: 320 },
-    { name: 'RTX 3080', length: 11.2, height: 4.4, width: 2, tdp: 320 },
-    { name: 'RTX 3080', length: 11.2, height: 4.4, width: 2, tdp: 320 }
+    { name: 'RTX 3090', length: 13.2, height: 5.5, width: 2.4, tdp: 350 },
+    { name: 'RTX 3090', length: 13.2, height: 5.5, width: 2.4, tdp: 350 },
+    { name: 'RTX 3090', length: 13.2, height: 5.5, width: 2.4, tdp: 350 }
   ]);
   
   // Combined case model
@@ -53,30 +52,22 @@ const App: React.FC = () => {
   };
   
   // Handle exporting the case design
-  const handleExport = (format: 'svg' | 'dxf' | 'dwg' | 'laser-svg' | 'laser-dxf') => {
+  const handleExport = (format: 'svg' | 'dxf' | 'dwg') => {
     let data: string;
     let filename: string;
     let mimeType: string;
     
     if (format === 'svg') {
+      // Use improved SVG exporter with finger joints and proper layout
       const exporter = new SVGExporter();
       data = exporter.export(caseModel);
       filename = 'gpu-case.svg';
       mimeType = 'image/svg+xml';
-    } else if (format === 'laser-svg') {
-      const exporter = new LaserCutExporter(tabWidth, kerf);
-      data = exporter.exportSVG(caseModel);
-      filename = 'gpu-case-laser.svg';
-      mimeType = 'image/svg+xml';
     } else if (format === 'dxf') {
+      // Use improved DXF exporter with finger joints and proper layout
       const exporter = new DXFExporter();
       data = exporter.export(caseModel);
       filename = 'gpu-case.dxf';
-      mimeType = 'application/dxf';
-    } else if (format === 'laser-dxf') {
-      const exporter = new LaserCutExporter(tabWidth, kerf);
-      data = exporter.exportDXF(caseModel);
-      filename = 'gpu-case-laser.dxf';
       mimeType = 'application/dxf';
     } else {
       alert('DWG format is not yet implemented');
@@ -167,19 +158,35 @@ const App: React.FC = () => {
         </div>
         
         <ExportOptions 
-          onExport={handleExport} 
-          hasLaserOptions={true}
+          onExport={handleExport}
         />
       </div>
       
       <div className="preview-panel">
-        <Canvas camera={{ position: [20, 10, 20], fov: 75 }}>
-          <color attach="background" args={[0xf0f0f0]} />
-          <ambientLight intensity={0.6} />
-          <directionalLight position={[1, 1, 1]} intensity={0.8} />
-          <gridHelper args={[30, 30]} />
+        <Canvas 
+          shadows 
+          camera={{ position: [20, 10, 20], fov: 65 }}
+          gl={{ antialias: true }}
+        >
+          <color attach="background" args={[0xf8f8f8]} />
+          <fog attach="fog" args={['#f8f8f8', 30, 80]} />
+          <ambientLight intensity={0.4} />
+          <directionalLight 
+            position={[10, 20, 10]} 
+            intensity={0.6} 
+            castShadow 
+            shadow-mapSize-width={2048}
+            shadow-mapSize-height={2048}
+          />
+          <directionalLight position={[-10, -10, -5]} intensity={0.2} />
+          <gridHelper args={[50, 50, 0x888888, 0xcccccc]} />
           <CaseModel caseModel={caseModel} />
-          <OrbitControls enableDamping dampingFactor={0.1} />
+          <OrbitControls 
+            enableDamping 
+            dampingFactor={0.1} 
+            maxDistance={50}
+            minDistance={5}
+          />
         </Canvas>
       </div>
     </div>

@@ -23,15 +23,24 @@ const GpuConfigurator: React.FC<GpuConfiguratorProps> = ({
   setIncludeTempSensors,
   setGpuModels
 }) => {
-  // GPU model definitions
+  // GPU model definitions - accurate dimensions
   const gpuDefinitions = {
+    // RTX 30 Series
     'RTX 3060': { length: 9.5, height: 4.4, width: 2, tdp: 170 },
     'RTX 3070': { length: 10.5, height: 4.4, width: 2, tdp: 220 },
     'RTX 3080': { length: 11.2, height: 4.4, width: 2, tdp: 320 },
-    'RTX 3090': { length: 12.3, height: 5.4, width: 2.5, tdp: 350 },
+    'RTX 3090': { length: 13.2, height: 5.5, width: 2.4, tdp: 350 }, // 336mm x 140mm x 61mm
+    
+    // RTX 40 Series
     'RTX 4070': { length: 10.8, height: 4.4, width: 2, tdp: 200 },
     'RTX 4080': { length: 11.9, height: 5.0, width: 2.3, tdp: 320 },
-    'RTX 4090': { length: 13.5, height: 5.9, width: 2.7, tdp: 450 },
+    'RTX 4090': { length: 13.5, height: 5.9, width: 3.0, tdp: 450 }, // 344mm x 150mm x 76mm
+    
+    // AMD Options
+    'RX 6900 XT': { length: 12.2, height: 5.0, width: 2.5, tdp: 300 },
+    'RX 7900 XTX': { length: 12.5, height: 5.1, width: 2.4, tdp: 355 },
+    
+    // Custom
     'Custom': { length: 10.5, height: 4.4, width: 2, tdp: 250 }
   };
   
@@ -69,6 +78,20 @@ const GpuConfigurator: React.FC<GpuConfiguratorProps> = ({
     setGpuModels(updatedModels);
   };
   
+  // Calculate total power consumption
+  const calculateTotalPower = (): number => {
+    return gpuModels
+      .slice(0, gpuCount)
+      .reduce((total, gpu) => total + (gpu.tdp || 0), 0);
+  };
+  
+  // Calculate required airflow based on TDP
+  const calculateRequiredAirflow = (): number => {
+    // Rule of thumb: ~1.5 CFM per 100W of heat
+    const totalTDP = calculateTotalPower();
+    return Math.ceil(totalTDP * 0.015);
+  };
+  
   return (
     <div className="gpu-configurator">
       <div className="section">
@@ -84,6 +107,22 @@ const GpuConfigurator: React.FC<GpuConfiguratorProps> = ({
             min={1}
             max={12}
           />
+          {gpuCount > 6 && (
+            <div className="warning-text">
+              Warning: High GPU count may require additional cooling
+            </div>
+          )}
+        </div>
+        
+        <div className="power-summary">
+          <div className="summary-item">
+            <span>Total Power:</span>
+            <strong>{calculateTotalPower()} watts</strong>
+          </div>
+          <div className="summary-item">
+            <span>Recommended Airflow:</span>
+            <strong>{calculateRequiredAirflow()} CFM</strong>
+          </div>
         </div>
         
         {gpuModels.slice(0, gpuCount).map((gpu, index) => (
@@ -97,19 +136,34 @@ const GpuConfigurator: React.FC<GpuConfiguratorProps> = ({
                 value={gpu.name}
                 onChange={(e) => updateGpuModel(index, e.target.value)}
               >
-                <option value="RTX 3060">RTX 3060</option>
-                <option value="RTX 3070">RTX 3070</option>
-                <option value="RTX 3080">RTX 3080</option>
-                <option value="RTX 3090">RTX 3090</option>
-                <option value="RTX 4070">RTX 4070</option>
-                <option value="RTX 4080">RTX 4080</option>
-                <option value="RTX 4090">RTX 4090</option>
+                <optgroup label="RTX 30 Series">
+                  <option value="RTX 3060">RTX 3060</option>
+                  <option value="RTX 3070">RTX 3070</option>
+                  <option value="RTX 3080">RTX 3080</option>
+                  <option value="RTX 3090">RTX 3090</option>
+                </optgroup>
+                <optgroup label="RTX 40 Series">
+                  <option value="RTX 4070">RTX 4070</option>
+                  <option value="RTX 4080">RTX 4080</option>
+                  <option value="RTX 4090">RTX 4090</option>
+                </optgroup>
+                <optgroup label="AMD">
+                  <option value="RX 6900 XT">RX 6900 XT</option>
+                  <option value="RX 7900 XTX">RX 7900 XTX</option>
+                </optgroup>
                 <option value="Custom">Custom</option>
               </select>
             </div>
             
+            <div className="dimensions-info">
+              <div>Length: {gpu.length}"</div>
+              <div>Height: {gpu.height}"</div>
+              <div>Width: {gpu.width}"</div>
+              <div>TDP: {gpu.tdp}W</div>
+            </div>
+            
             {gpu.name === 'Custom' && (
-              <>
+              <div className="custom-dimensions">
                 <div className="form-group">
                   <label htmlFor={`gpu-length-${index}`}>Length (inches)</label>
                   <input
@@ -119,6 +173,7 @@ const GpuConfigurator: React.FC<GpuConfiguratorProps> = ({
                     onChange={(e) => updateGpuProperty(index, 'length', Number(e.target.value))}
                     min={5}
                     max={16}
+                    step={0.1}
                   />
                 </div>
                 
@@ -131,6 +186,7 @@ const GpuConfigurator: React.FC<GpuConfiguratorProps> = ({
                     onChange={(e) => updateGpuProperty(index, 'height', Number(e.target.value))}
                     min={1}
                     max={8}
+                    step={0.1}
                   />
                 </div>
                 
@@ -142,7 +198,8 @@ const GpuConfigurator: React.FC<GpuConfiguratorProps> = ({
                     value={gpu.width}
                     onChange={(e) => updateGpuProperty(index, 'width', Number(e.target.value))}
                     min={1}
-                    max={3}
+                    max={3.5}
+                    step={0.1}
                   />
                 </div>
                 
@@ -157,7 +214,7 @@ const GpuConfigurator: React.FC<GpuConfiguratorProps> = ({
                     max={600}
                   />
                 </div>
-              </>
+              </div>
             )}
           </div>
         ))}
@@ -185,6 +242,12 @@ const GpuConfigurator: React.FC<GpuConfiguratorProps> = ({
           />
           <label htmlFor="temp-sensors">Include Temperature Sensors & LEDs</label>
         </div>
+        
+        {calculateTotalPower() > 600 && !includeAirDuct && (
+          <div className="warning-text">
+            Warning: High power configuration ({calculateTotalPower()}W) recommended to enable air duct for proper cooling
+          </div>
+        )}
       </div>
     </div>
   );
